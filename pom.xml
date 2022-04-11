@@ -35,18 +35,17 @@
     <build>
         <plugins>
             <plugin>
-                <!-- Build an executable JAR -->
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.0</version>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
                 <configuration>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>java.main.Main</mainClass>
+                            <mainClass>main.Main</mainClass>
                         </manifest>
                     </archive>
+                    <descriptorRefs>jar-with-dependencies</descriptorRefs>
                 </configuration>
             </plugin>
         </plugins>
