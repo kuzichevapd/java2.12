@@ -2,15 +2,16 @@ package main;
 
 import org.kohsuke.args4j.*;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
+
 
 public class Main {
-    @Argument(required = true, usage = "Команда split")
+    @Argument(usage = "Команда split")
     private String command;
 
     @Argument(required = true, index = 1, usage = "Имя входного файла")
-    private String inputFileName;
+    private File inputFile;
 
     @Option(name = "-o", usage = "Базовое имя выходного файла")
     private String outputFileName;
@@ -19,54 +20,62 @@ public class Main {
             " или же ofilea, ofileb.. при отсутствии флага ")
     private boolean fileFormat;
 
-    @Option(name = "-l", usage = "Указывает размер выходных файлов в строчках(По умолчанию - 100)")
-    private int sizeOfOutputFilesinLines;
+    @Option(name = "-l", forbids = {"-n", "-c"}, usage = "Указывает размер выходных файлов в строчках(По умолчанию - 100)")
+    private int sizeOfOutputFilesInLines;
 
-    @Option(name = "-c", usage = "Указывает размер выходных файлов в символах")
-    private int sizeOfOutputFilesinChars;
+    @Option(name = "-c", forbids = {"-l", "-n"}, usage = "Указывает размер выходных файлов в символах")
+    private int sizeOfOutputFilesInChars;
 
-    @Option(name = "-n", usage = "Указывает количество выходных файлов")
+    @Option(name = "-n", forbids = {"-l", "-c"}, usage = "Указывает количество выходных файлов")
     private int amountOfOutputFiles;
 
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws IOException {
         new Main().launch(args);
     }
 
-    private void launch(String[] args) {
+    private void launch(String[] args) throws IOException {
         CmdLineParser parser = new CmdLineParser(this);
         try {
             parser.parseArgument(args);
         } catch (CmdLineException e) {
-            System.err.println(e.getMessage());
-            System.err.println("split [-d] [-l num|-c num|-n num] [-o ofile] file");
-            parser.printUsage(System.err);
-            return;
+            throw new IllegalArgumentException(e.getMessage());
         }
-        Split spl = null;
+        Main main = new Main();
         try {
-            spl = new Split(fileFormat, sizeOfOutputFilesinLines, sizeOfOutputFilesinChars,
-                    amountOfOutputFiles, outputFileName, inputFileName);
-        } catch (IOException | IllegalArgumentException e) {
-            System.err.println(e.getMessage());
-        }
-
-        try {
+            Split spl = new Split(main);
             spl.createFiles();
-        } catch (IOException | NullPointerException e) {
-            System.err.println(e.getMessage());
+        } catch (IOException e) {
+            throw new IOException();
+        }
+        try {
+            Split spl = new Split(main);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException();
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Main main = (Main) o;
-        return fileFormat == main.fileFormat && sizeOfOutputFilesinLines == main.sizeOfOutputFilesinLines && sizeOfOutputFilesinChars == main.sizeOfOutputFilesinChars && amountOfOutputFiles == main.amountOfOutputFiles && Objects.equals(command, main.command) && Objects.equals(inputFileName, main.inputFileName) && Objects.equals(outputFileName, main.outputFileName);
+    public int getSizeOfOutputFilesInChars() {
+        return sizeOfOutputFilesInChars;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(command, inputFileName, outputFileName, fileFormat, sizeOfOutputFilesinLines, sizeOfOutputFilesinChars, amountOfOutputFiles);
+    public File getInputFile() {
+        return inputFile;
+    }
+
+    public String getOutputFileName() {
+        return outputFileName;
+    }
+
+    public boolean isFileFormat() {
+        return fileFormat;
+    }
+
+    public int getSizeOfOutputFilesInLines() {
+        return sizeOfOutputFilesInLines;
+    }
+
+    public int getAmountOfOutputFiles() {
+        return amountOfOutputFiles;
     }
 }

@@ -1,128 +1,145 @@
 package main;
 
 import java.io.*;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 
 public final class Split {
-    public final String outputFileName;
-    public final String inputFileName;
-    public final boolean fileFormat;
-    public final int sizeOfOutputFilesinLines;
-    public final int sizeOfOutputFilesinChars;
-    public final int amountOfOutputFiles;
-    public final int sizeOfOutFile;
+    private final String outputFileName;
+    private final String inputFileName;
+    private final boolean fileFormat;
+    private final int sizeOfOutputFilesInLines;
+    private final int sizeOfOutputFilesInChars;
+    private final int amountOfOutputFiles;
+    private final int sizeOfOutFile;
 
-    public Split(boolean fileFormat, int
-            sizeOfOutputFilesinLines, int sizeOfOutputFilesinChars, int amountOfOutputFiles,
-                 String outputFileName, String inputFileName) throws IOException {
-        if (sizeOfOutputFilesinChars != 0 && sizeOfOutputFilesinLines != 0 ||
-                sizeOfOutputFilesinChars != 0 && amountOfOutputFiles != 0 ||
-                amountOfOutputFiles != 0 && sizeOfOutputFilesinLines != 0) {
-            throw new IllegalArgumentException();
-        } else {
-            this.sizeOfOutputFilesinLines = sizeOfOutputFilesinLines;
-            this.sizeOfOutputFilesinChars = sizeOfOutputFilesinChars;
-        }
-
-        this.inputFileName = inputFileName;
-        this.fileFormat = fileFormat;
-
-        if (outputFileName == null) {
-            this.outputFileName = "x";
-        } else {
-            if (outputFileName.equals("-")) {
-                this.outputFileName = inputFileName.substring(0, inputFileName.indexOf("."));
-            } else this.outputFileName = outputFileName;
-        }
-        ArrayList<Integer> parametres = parametresOfOutputFiles(amountOfOutputFiles,
-                sizeOfOutputFilesinLines, sizeOfOutputFilesinChars);
-        this.sizeOfOutFile = parametres.get(0);
-        this.amountOfOutputFiles = parametres.get(1);
-
+    public Split(Main main) throws IOException {
+        if (main.getSizeOfOutputFilesInLines() < 0 || main.getSizeOfOutputFilesInChars() < 0
+                || main.getAmountOfOutputFiles() < 0) throw new IllegalArgumentException();
+        this.sizeOfOutputFilesInLines = main.getSizeOfOutputFilesInLines();
+        this.sizeOfOutputFilesInChars = main.getSizeOfOutputFilesInChars();
+        this.inputFileName = getNameOfInputFile(main.getInputFile());
+        this.fileFormat = main.isFileFormat();
+        if (checkInputFile(main.getInputFile())) {
+            if (main.getOutputFileName() == null) {
+                this.outputFileName = "x";
+            } else {
+                if (main.getOutputFileName().equals("-")) {
+                    this.outputFileName = inputFileName.substring(0, inputFileName.indexOf("."));
+                } else this.outputFileName = main.getOutputFileName();
+            }
+        } else throw new IllegalArgumentException();
+        Pair sizeAndAmountOfOutputFiles = countSizeAndAmountOfOutputFiles(main.getAmountOfOutputFiles(),
+                sizeOfOutputFilesInLines, sizeOfOutputFilesInChars);
+        this.sizeOfOutFile = sizeAndAmountOfOutputFiles.sizeOfOutFile;
+        this.amountOfOutputFiles = sizeAndAmountOfOutputFiles.amountOfOutputFiles;
     }
 
-    public ArrayList<Integer> parametresOfOutputFiles(int amountOfOutputFiles,
-                                                      int sizeOfOutputFilesinLines,
-                                                      int sizeOfOutputFilesinChars) throws IOException {
-        ArrayList<Integer> parametres = new ArrayList<>(); // первый в листе  - размер выходного файла, второй - количество выходных файлов
+    private String getNameOfInputFile(File inputFile) {
+        if (checkInputFile(inputFile)) return new File(String.valueOf(inputFile)).getName();
+        else return "";
+    }
+
+    private boolean checkInputFile(File inputFile) {
+        return Files.isRegularFile(Path.of(inputFile.getPath()));
+    }
+
+
+    public Pair countSizeAndAmountOfOutputFiles(int amountOfOutputFiles,
+                                                int sizeOfOutputFilesInLines,
+                                                int sizeOfOutputFilesInChars) throws IOException {
+        Pair pair;
+        int sizeOfOutFileByDefault = 100;
         if (amountOfOutputFiles != 0) {
-            parametres.add(parametresCount(lengthOfFileInLines(), amountOfOutputFiles));
-            parametres.add(amountOfOutputFiles);
-        } else if (sizeOfOutputFilesinChars != 0) {
-            parametres.add(sizeOfOutputFilesinChars);
-            parametres.add(parametresCount(lengthOfFileInChars(), sizeOfOutputFilesinChars));
-        } else if (sizeOfOutputFilesinLines != 0) {
-            parametres.add(sizeOfOutputFilesinLines);
-            parametres.add(parametresCount(lengthOfFileInLines(), sizeOfOutputFilesinLines));
+            pair = new Pair(sizeAndAmountCount(lengthOfFileInLines(), amountOfOutputFiles), amountOfOutputFiles);
+        } else if (sizeOfOutputFilesInChars != 0) {
+            pair = new Pair(sizeOfOutputFilesInChars, sizeAndAmountCount(lengthOfFileInChars(), sizeOfOutputFilesInChars));
+        } else if (sizeOfOutputFilesInLines != 0) {
+            pair = new Pair(sizeOfOutputFilesInLines, sizeAndAmountCount(lengthOfFileInLines(), sizeOfOutputFilesInLines));
         } else {
-            parametres.add(100);
-            parametres.add(parametresCount(lengthOfFileInLines(), 100));
+            pair = new Pair(sizeOfOutFileByDefault, sizeAndAmountCount(lengthOfFileInLines(), sizeOfOutFileByDefault));
         }
-        return parametres;
+        return pair;
     }
 
-    private int parametresCount(int length, int size) {
+    private int sizeAndAmountCount(int length, int size) {
         if (length % size > 0) return length / size + 1;
         else return length / (size);
     }
 
     private int lengthOfFileInChars() throws IOException {
         int length = 0;
-        BufferedReader reader = new BufferedReader(new FileReader(inputFileName));
-        while (reader.read() != -1) length += 1;
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFileName))) {
+            while (reader.read() != -1) length += 1;
+        }
         return length;
     }
 
     private int lengthOfFileInLines() throws IOException {
         int length = 0;
-        BufferedReader reader = new BufferedReader(new FileReader(inputFileName));
-        while (null != reader.readLine()) length += 1;
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFileName))) {
+            while (null != reader.readLine()) length += 1;
+        }
         return length;
     }
 
     public String nameOfFile(int number) {
         if (fileFormat) {
-            return outputFileName + String.format("%d" + ".txt", number);
+            return String.format(outputFileName + "%d" + ".txt", number);
         } else {
+            int alphabetSize = 26;
+            int numberOfChar = 96;
             StringBuilder sb = new StringBuilder();
-            while (number > 26) {
-                sb.append((char) (number % 26 + 96));
-                number /= 26;
+            while (number > alphabetSize) {
+                sb.append((char) (number % alphabetSize + numberOfChar));
+                number /= alphabetSize;
             }
-            if (number == 26) sb.append("z");
-            else sb.append((char) (number % 26 + 96));
+            if (number == alphabetSize) sb.append("z");
+            else sb.append((char) (number % alphabetSize + numberOfChar));
             return outputFileName + sb.reverse() + ".txt";
         }
     }
 
     public void createFiles() throws IOException {
-        BufferedReader br = new BufferedReader((new FileReader(inputFileName)));
-        if (sizeOfOutputFilesinChars != 0) {
-            int currentChar;
-            for (int i = 1; i <= amountOfOutputFiles; i++) {
-                BufferedWriter bw = new BufferedWriter(new FileWriter(nameOfFile(i)));
-                for (int j = 0; j < sizeOfOutFile; j++) {
-                    currentChar = br.read();
-                    if (currentChar != -1) bw.write(currentChar);
-                    else break;
+        try (BufferedReader br = new BufferedReader((new FileReader(inputFileName)))) {
+            if (sizeOfOutputFilesInChars != 0) {
+                int currentChar;
+                for (int i = 1; i <= amountOfOutputFiles; i++) {
+                    try (BufferedWriter bw = new BufferedWriter(new FileWriter(nameOfFile(i)))) {
+                        for (int j = 0; j < sizeOfOutFile; j++) {
+                            currentChar = br.read();
+                            if (currentChar != -1) bw.write(currentChar);
+                            else break;
+                        }
+                    }
                 }
-                bw.close();
-            }
-        } else {
-            String currentLine;
-            for (int i = 1; i <= amountOfOutputFiles; i++) {
-                BufferedWriter bw = new BufferedWriter(new FileWriter(nameOfFile(i)));
-                bw.write(br.readLine());
-                for (int j = 1; j < sizeOfOutFile; j++) {
-                    currentLine = br.readLine();
-                    if (currentLine != null) {
-                        bw.newLine();
-                        bw.write(currentLine);
-                    } else break;
+            } else {
+                String currentLine;
+                for (int i = 1; i <= amountOfOutputFiles; i++) {
+                    try (BufferedWriter bw = new BufferedWriter(new FileWriter(nameOfFile(i)))) {
+                        bw.write(br.readLine());
+                        for (int j = 1; j < sizeOfOutFile; j++) {
+                            currentLine = br.readLine();
+                            if (currentLine != null) {
+                                bw.newLine();
+                                bw.write(currentLine);
+                            } else break;
+                        }
+                    }
                 }
-                bw.close();
             }
+        }
+    }
+
+    private static class Pair {
+        int sizeOfOutFile;
+        int amountOfOutputFiles;
+
+        public Pair(int sizeOfOutFile, int amountOfOutputFiles) {
+            this.sizeOfOutFile = sizeOfOutFile;
+            this.amountOfOutputFiles = amountOfOutputFiles;
+
         }
     }
 
@@ -131,12 +148,18 @@ public final class Split {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Split split = (Split) o;
-        return fileFormat == split.fileFormat && sizeOfOutputFilesinLines == split.sizeOfOutputFilesinLines && sizeOfOutputFilesinChars == split.sizeOfOutputFilesinChars && amountOfOutputFiles == split.amountOfOutputFiles && sizeOfOutFile == split.sizeOfOutFile && Objects.equals(outputFileName, split.outputFileName) && Objects.equals(inputFileName, split.inputFileName);
+        return fileFormat == split.fileFormat && sizeOfOutputFilesInLines == split.sizeOfOutputFilesInLines
+                && sizeOfOutputFilesInChars == split.sizeOfOutputFilesInChars &&
+                amountOfOutputFiles == split.amountOfOutputFiles &&
+                sizeOfOutFile == split.sizeOfOutFile &&
+                Objects.equals(outputFileName, split.outputFileName)
+                && Objects.equals(inputFileName, split.inputFileName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(outputFileName, inputFileName, fileFormat, sizeOfOutputFilesinLines, sizeOfOutputFilesinChars, amountOfOutputFiles, sizeOfOutFile);
+        return Objects.hash(outputFileName, inputFileName,
+                fileFormat, sizeOfOutputFilesInLines, sizeOfOutputFilesInChars, amountOfOutputFiles, sizeOfOutFile);
     }
 }
 
