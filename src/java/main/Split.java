@@ -5,7 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
-public final class Split {
+public class Split {
+    private File inputFile;
     private final String outputFileName;
     private final String inputFileName;
     private final boolean fileFormat;
@@ -68,7 +69,7 @@ public final class Split {
         else return length / (size);
     }
 
-    private int lengthOfFileInChars() throws IOException {
+    private  int lengthOfFileInChars() throws IOException {
         int length = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFileName))) {
             while (reader.read() != -1) length += 1;
@@ -84,7 +85,7 @@ public final class Split {
         return length;
     }
 
-    public String nameOfFile(int number) {
+    private String nameOfFile(int number) {
         if (fileFormat) {
             return String.format(outputFileName + "%d" + ".txt", number);
         } else {

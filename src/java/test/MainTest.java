@@ -1,23 +1,19 @@
 package test;
 
 
-import main.Split;
+import main.Main;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MainTest {
-      /*@Test
-    public void test1() throws IOException {
-        Split spl = new Split();
-        spl.createFiles();
+    @Test
+    public void amountOfOutputFilesTest() throws IOException {
+        Main.main(new String[]{"-n", "3", "-o", "FirstTest", "FileTestOne.txt"});
         assertTrue(new File("FirstTesta.txt").exists());
         assertTrue(new File("FirstTestc.txt").exists());
         assertTrue(new File("FirstTestb.txt").exists());
@@ -25,13 +21,11 @@ public class MainTest {
         new File("FirstTesta.txt").delete();
         new File("FirstTestb.txt").delete();
         new File("FirstTestc.txt").delete();
-    }*/
+    }
 
-   /* @Test
-    public void test2() throws IOException {
-        Split spl = new Split(true, 11, 0, 0,
-                null, "FileTestOne.txt");
-        spl.createFiles();
+    @Test
+    public void lengthInLinesTest() throws IOException {
+        Main.main(new String[]{"-d", "-l", "11", "FileTestOne.txt"});
         assertTrue(new File("x1.txt").exists());
         assertTrue(new File("x2.txt").exists());
         assertTrue(new File("x3.txt").exists());
@@ -46,10 +40,8 @@ public class MainTest {
     }
 
     @Test
-    public void test3() throws IOException {
-        Split spl = new Split(true, 0, 1000, 0,
-                "-", "FileTestOne.txt");
-        spl.createFiles();
+    public void lengthInCharsTest() throws IOException {
+        Main.main(new String[]{"-d", "-c", "1000", "-o", "-", "C:\\Users\\kuuzi\\IdeaProjects\\java2.123\\FileTestOne.txt"});
         assertTrue(new File("FileTestOne1.txt").exists());
         assertTrue(new File("FileTestOne2.txt").exists());
         assertTrue(new File("FileTestOne3.txt").exists());
@@ -64,11 +56,8 @@ public class MainTest {
     }
 
     @Test
-    public void test4() throws IOException {
-        Split spl = new Split(true, 0, 0, 0,
-                "-", "FileTestTwo.txt");
-        spl.createFiles();
-
+    public void noOptionsTest() throws IOException {
+        Main.main(new String[]{"-d", "-o", "-", "FileTestTwo.txt"});
         assertTrue(new File("FileTestTwo1.txt").exists());
         assertTrue(new File("FileTestTwo2.txt").exists());
         assertTrue(new File("FileTestTwo3.txt").exists());
@@ -78,9 +67,25 @@ public class MainTest {
         new File("FileTestTwo2.txt").delete();
         new File("FileTestTwo3.txt").delete();
         new File("FileTestTwo4.txt").delete();
-    }*/
+    }
 
+    @Test
+    public void negativeNumbersTest() {
+        Assertions.assertThrows(IllegalArgumentException.class, ()
+                -> Main.main(new String[]{"-d", "-c", "-1000", "-o",
+                "-", "C:\\Users\\kuuzi\\IdeaProjects\\java2.123\\FileTestOne.txt"}));
+        Assertions.assertThrows(IllegalArgumentException.class, ()
+                -> Main.main(new String[]{"-d", "-l", "-10", "-o", "-", "FileTestOne.txt"}));
+        Assertions.assertThrows(IllegalArgumentException.class, ()
+                -> Main.main(new String[]{"-d", "-n", "-5", "-o", "-", "FileTestOne.txt"}));
+    }
 
+    @Test
+    public void nonDirectoryTest() {
+        Assertions.assertThrows(IllegalArgumentException.class, ()
+                -> Main.main(new String[]{"-d", "-c", "-1000", "-o", "-",
+                "C:\\Users\\kuuzi\\IdeaProjects\\java2.123\\DirectoryTest"}));
+    }
 
 
 

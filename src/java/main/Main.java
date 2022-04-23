@@ -7,10 +7,7 @@ import java.io.IOException;
 
 
 public class Main {
-    @Argument(usage = "Команда split")
-    private String command;
-
-    @Argument(required = true, index = 1, usage = "Имя входного файла")
+    @Argument(required = true, usage = "Имя входного файла")
     private File inputFile;
 
     @Option(name = "-o", usage = "Базовое имя выходного файла")
@@ -41,19 +38,20 @@ public class Main {
         } catch (CmdLineException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
-        Main main = new Main();
         try {
-            Split spl = new Split(main);
+            Split spl = new Split(this);
             spl.createFiles();
         } catch (IOException e) {
             throw new IOException();
         }
         try {
-            Split spl = new Split(main);
+            Split spl = new Split(this);
+            spl.createFiles();
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException();
         }
     }
+
 
     public int getSizeOfOutputFilesInChars() {
         return sizeOfOutputFilesInChars;
