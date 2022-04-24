@@ -15,7 +15,7 @@ public class Split {
     private final int amountOfOutputFiles;
     private final int sizeOfOutFile;
 
-    public Split(Main main) throws IOException {
+    public Split(EnterPoint main) throws IOException {
         if (main.getSizeOfOutputFilesInLines() < 0 || main.getSizeOfOutputFilesInChars() < 0
                 || main.getAmountOfOutputFiles() < 0) throw new IllegalArgumentException();
         this.sizeOfOutputFilesInLines = main.getSizeOfOutputFilesInLines();

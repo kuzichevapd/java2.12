@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.IOException;
 
 
-public class Main {
+public class EnterPoint {
     @Argument(required = true, usage = "Имя входного файла")
     private File inputFile;
 
@@ -28,7 +28,7 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException {
-        new Main().launch(args);
+        new EnterPoint().launch(args);
     }
 
     private void launch(String[] args) throws IOException {
