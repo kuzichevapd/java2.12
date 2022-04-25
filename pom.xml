@@ -42,7 +42,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>main.EnterPoint</mainClass>
+                            <mainClass>solver.EnterPoint</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>jar-with-dependencies</descriptorRefs>
@@ -50,7 +50,6 @@
             </plugin>
         </plugins>
     </build>
-
 
 
     <properties>

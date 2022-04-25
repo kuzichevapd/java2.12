@@ -1,4 +1,4 @@
-package main;
+package solver;
 
 import java.io.*;
 import java.nio.file.Files;
