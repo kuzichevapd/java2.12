@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.IOException;
 
 
-public class EnterPoint {
+public class Launcher {
     @Argument(required = true, usage = "Имя входного файла")
     private File inputFile;
 
@@ -28,7 +28,7 @@ public class EnterPoint {
 
 
     public static void main(String[] args) throws IOException {
-        new EnterPoint().launch(args);
+        new Launcher().launch(args);
     }
 
     private void launch(String[] args) throws IOException {
@@ -38,31 +38,40 @@ public class EnterPoint {
         } catch (CmdLineException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
+        if (sizeOfOutputFilesInLines < 0 || sizeOfOutputFilesInChars < 0
+                || amountOfOutputFiles < 0)
+            throw new IllegalArgumentException("Числовые значения не могут быть меньше нуля");
+        if (inputFile.isDirectory()) {
+            throw new IllegalArgumentException("Команда не может выполняться над директорией");
+        }
         try {
             Split spl = new Split(this);
             spl.createFiles();
         } catch (IOException e) {
-            throw new IOException();
-        }
-        try {
-            Split spl = new Split(this);
-            spl.createFiles();
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException();
+            throw new IOException(e.getMessage());
         }
     }
-
 
     public int getSizeOfOutputFilesInChars() {
         return sizeOfOutputFilesInChars;
     }
 
-    public File getInputFile() {
-        return inputFile;
+    public String getInputFileName() {
+        return new File(String.valueOf(inputFile)).getName();
     }
 
     public String getOutputFileName() {
-        return outputFileName;
+        String inputFileName = new File(String.valueOf(inputFile)).getName();
+        String outputName;
+        if (outputFileName == null) {
+            outputName = "x";
+        } else if (outputFileName.equals("-")) {
+            if ((inputFileName.contains("."))) {
+                outputName = inputFileName.substring(0,
+                        inputFileName.indexOf("."));
+            } else outputName = inputFileName;
+        } else outputName = outputFileName;
+        return outputName;
     }
 
     public boolean isFileFormat() {
