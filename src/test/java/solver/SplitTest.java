@@ -1,6 +1,7 @@
+package solver;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import solver.Launcher;
 
 import java.io.*;
 
@@ -10,11 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class SplitTest {
 
     private boolean assertContentEqualsForLines(int amount, int currentLine,
-                                        String filename1, String filename2) throws IOException {
+                                        String firstFileName, String SecondFileName) throws IOException {
         boolean result = true;
-        try (BufferedReader br1 = new BufferedReader((new FileReader(filename1)))) {
+        try (BufferedReader br1 = new BufferedReader((new FileReader(firstFileName)))) {
             for (int j = 1; j <= currentLine; j++ ) {br1.readLine(); }
-            try (BufferedReader br2 = new BufferedReader((new FileReader(filename2)))) {
+            try (BufferedReader br2 = new BufferedReader((new FileReader(SecondFileName)))) {
                 for (int i = 1; i <= amount; i++) {
                     result = result && (br1.readLine().contentEquals(br2.readLine()));
                 }
@@ -24,12 +25,12 @@ public class SplitTest {
     }
 
     private boolean assertContentEqualsForChars(int amount, int currentChar,
-                                                 String filename1, String filename2) throws IOException {
+                                                 String firstFileName, String SecondFileName) throws IOException {
         boolean result = true;
-        try (BufferedReader br1 = new BufferedReader((new FileReader(filename1)))) {
+        try (BufferedReader br1 = new BufferedReader((new FileReader(firstFileName)))) {
             for (int j = 1; j <= currentChar; j++ ) {br1.read();
             }
-            try (BufferedReader br2 = new BufferedReader((new FileReader(filename2)))) {
+            try (BufferedReader br2 = new BufferedReader((new FileReader(SecondFileName)))) {
                 for (int i = 0; i < amount; i++) {
                     if (br1.read() != -1 && br2.read() != -1) {
                         result = result && (br1.read() == br2.read());
@@ -40,6 +41,9 @@ public class SplitTest {
         }
         return result;
     }
+   /* String testFilePath = getClass().getClassLoader().getResource("FileTestOne.txt").getPath();*/
+
+
 
     @Test
     public void amountOfOutputFilesTest() throws IOException {
@@ -47,7 +51,6 @@ public class SplitTest {
         assertTrue(new File("FirstTesta.txt").exists());
         assertTrue(new File("FirstTestc.txt").exists());
         assertTrue(new File("FirstTestb.txt").exists());
-
         assertTrue(assertContentEqualsForLines(17,0,
                 "FileTestOne.txt", "FirstTesta.txt"));
         assertTrue(assertContentEqualsForLines(17,17,
